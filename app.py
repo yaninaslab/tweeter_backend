@@ -1,6 +1,7 @@
 import dbinteractions as dbi
 from flask import Flask, request, Response
 import json
+import hashlib
 
 import sys
 
@@ -28,9 +29,19 @@ def add_new_user():
         birthdate = request.json['birthdate']
         image_url = request.json['image_url']
         banner_url = request.json['banner_url']
-        new_user = dbi.add_new_user(
+        new_user, login_token, user_id = dbi.add_new_user(
             email, username, password, bio, birthdate, image_url, banner_url)
         if(new_user == True):
+            new_user = {
+                "userId": user_id,
+                "email": email,
+                "username": username,
+                "bio": bio,
+                "bithdate": birthdate,
+                "image_url": image_url,
+                "banner_url": banner_url,
+                "login_token": login_token
+            }
             new_user_json = json.dumps(new_user, default=str)
             return Response(new_user_json, mimetype="application/json", status=200)
         else:
@@ -71,6 +82,28 @@ def update_user():
             return Response(user_id_json, mimetype="application/json", status=200)
         else:
             return Response("Please enter valid data", mimetype="plain/text", status=400)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.post('/api/login')
+def log_user():
+    try:
+        email = request.json['email']
+        password = request.json['password']
+        # salt = dbi.create_salt()
+        # password = salt + password
+        # hash_result = hashlib.sha512(password.encode()).hexdigest()
+        # if(hash_result == login_token):
+        login_token = dbi.log_user(email, password)
+        if(login_token == True):
+            # log_user()
+            login_token_json = json.dumps(login_token, default=str)
+            return Response(login_token_json, mimetype="application/json", status=200)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
     except:
         print("Something went wrong")
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)

@@ -1,5 +1,14 @@
 import mariadb as db
 import dbcreds
+import secrets
+
+
+def create_salt():
+    return secrets.token_urlsafe(10)
+
+
+def create_login_token():
+    return secrets.token_urlsafe(50)
 
 
 def connect_db():
@@ -49,10 +58,16 @@ def add_new_user(
     new_user = None
     conn, cursor = connect_db()
     try:
+        salt = create_salt()
         cursor.execute(
-            "insert into user(email, username, password, bio, birthdate, image_url, banner_url) values(?, ?, ?, ?, ?, ?, ?)", [email, username, password, bio, birthdate, image_url, banner_url])
+            "insert into user(email, username, password, bio, birthdate, image_url, banner_url, salt) values(?, ?, ?, ?, ?, ?, ?, ?)", [email, username, password, bio, birthdate, image_url, banner_url, salt])
         conn.commit()
         if(cursor.rowcount == 1):
+            login_token = create_login_token()
+            user_id = cursor.lastrowid
+            cursor.execute("insert into user_session(login_token, user_id) values(?, ?)", [
+                           login_token, user_id])
+            conn.commit()
             new_user = True
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
@@ -61,7 +76,7 @@ def add_new_user(
     except:
         print("Something went wrong!")
     disconnect_db(conn, cursor)
-    return new_user
+    return new_user, login_token, user_id
 
 
 def delete_user(user_id):
@@ -100,3 +115,22 @@ def update_user(new_password, new_bio, new_image_url, user_id):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return success
+
+
+def log_user(login_token):
+    login_token = None
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "insert into user_session(login_token) values(?)", [login_token])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            login_token = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return login_token
