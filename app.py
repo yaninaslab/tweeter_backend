@@ -92,15 +92,35 @@ def log_user():
     try:
         email = request.json['email']
         password = request.json['password']
-        # salt = dbi.create_salt()
-        # password = salt + password
-        # hash_result = hashlib.sha512(password.encode()).hexdigest()
-        # if(hash_result == login_token):
-        login_token = dbi.log_user(email, password)
-        if(login_token == True):
-            # log_user()
-            login_token_json = json.dumps(login_token, default=str)
-            return Response(login_token_json, mimetype="application/json", status=200)
+        login_token, success, user = dbi.log_user(email, password)
+        if(success == True):
+            user = {
+                "userId": user[0],
+                "email": user[1],
+                "username": user[3],
+                "bio": user[4],
+                "imageUrl": user[5],
+                "bannerUrl": user[6],
+                "birthdate": user[7],
+                "loginToken": login_token
+            }
+            user_json = json.dumps(user, default=str)
+            return Response(user_json, mimetype="application/json", status=200)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/login')
+def logout_user():
+    try:
+        login_token = request.json['loginToken']
+        success = dbi.logout_user(login_token)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
         else:
             return Response("Please enter valid data", mimetype="plain/text", status=400)
 

@@ -117,15 +117,20 @@ def update_user(new_password, new_bio, new_image_url, user_id):
     return success
 
 
-def log_user(login_token):
+def log_user(email, password):
     login_token = None
+    success = False
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "insert into user_session(login_token) values(?)", [login_token])
-        conn.commit()
-        if(cursor.rowcount == 1):
-            login_token = True
+            "select id, email, password, username, bio, image_url, banner_url, birthdate from user where email = ? and password = ?", [email, password])
+        user = cursor.fetchone()
+        if(user):
+            login_token = create_login_token()
+            cursor.execute("insert into user_session(login_token, user_id) values(?, ?)", [
+                login_token, user[0]])
+            conn.commit()
+            success = True
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
     except db.ProgrammingError:
@@ -133,4 +138,23 @@ def log_user(login_token):
     except:
         print("Something went wrong!")
     disconnect_db(conn, cursor)
-    return login_token
+    return login_token, success, user
+
+
+def logout_user(login_token):
+    success = False
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "delete from user_session where login_token = ?", [login_token])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success
