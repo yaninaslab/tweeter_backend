@@ -98,14 +98,23 @@ def delete_user(user_id):
     return success
 
 
-def update_user(new_password, new_bio, new_image_url, user_id):
+def update_user(login_token, password, bio, image_url):
     success = None
+    user = None
+    user_id = None
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "update user set password = ?, bio = ?, image_url = ? where id = ?", [new_password, new_bio, new_image_url, user_id])
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "update user set password = ?, bio = ?, image_url = ? where id = ?", [password, bio, image_url, user_id])
         conn.commit()
         if(cursor.rowcount == 1):
+            cursor.execute(
+                "select id, email, username, bio, birthdate, image_url, banner_url from user where id = ?", [user_id])
+            user = cursor.fetchone()
             success = True
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
@@ -114,7 +123,7 @@ def update_user(new_password, new_bio, new_image_url, user_id):
     except:
         print("Something went wrong!")
     disconnect_db(conn, cursor)
-    return success
+    return success, user, user_id
 
 
 def log_user(email, password):
@@ -158,3 +167,20 @@ def logout_user(login_token):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return success
+
+
+def get_my_follows(user_id):
+    follows = []
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select u.id, email, username, bio, birthdate, image_url, banner_url from user u inner join follow f on u.id = f.follower_id where f.followed_id = ?", [user_id])
+        follows = cursor.fetchall()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return follows

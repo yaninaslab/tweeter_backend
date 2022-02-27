@@ -38,9 +38,9 @@ def add_new_user():
                 "username": username,
                 "bio": bio,
                 "bithdate": birthdate,
-                "image_url": image_url,
-                "banner_url": banner_url,
-                "login_token": login_token
+                "imageUrl": image_url,
+                "bannerUrl": banner_url,
+                "loginToken": login_token
             }
             new_user_json = json.dumps(new_user, default=str)
             return Response(new_user_json, mimetype="application/json", status=200)
@@ -71,15 +71,24 @@ def delete_user():
 @app.patch('/api/users')
 def update_user():
     try:
-        new_password = request.json['password']
-        new_bio = request.json['bio']
-        new_image_url = request.json['image_url']
-        user_id = request.json['user_id']
-        user_id = dbi.update_user(
-            new_password, new_bio, new_image_url, user_id,)
-        if(user_id == True):
-            user_id_json = json.dumps(user_id, default=str)
-            return Response(user_id_json, mimetype="application/json", status=200)
+        login_token = request.json['loginToken']
+        password = request.json['password']
+        bio = request.json['bio']
+        image_url = request.json['imageUrl']
+        success, user, user_id = dbi.update_user(login_token,
+                                                 password, bio, image_url)
+        if(success == True):
+            user = {
+                "userId": user_id,
+                "email": user[1],
+                "username": user[2],
+                "bio": user[3],
+                "bithdate": user[4],
+                "imageUrl": user[5],
+                "bannerUrl": user[6],
+            }
+            user_json = json.dumps(user, default=str)
+            return Response(user_json, mimetype="application/json", status=200)
         else:
             return Response("Please enter valid data", mimetype="plain/text", status=400)
     except:
@@ -97,11 +106,11 @@ def log_user():
             user = {
                 "userId": user[0],
                 "email": user[1],
-                "username": user[3],
+                "username": user[2],
                 "bio": user[4],
-                "imageUrl": user[5],
-                "bannerUrl": user[6],
-                "birthdate": user[7],
+                "imageUrl": user[6],
+                "bannerUrl": user[7],
+                "birthdate": user[5],
                 "loginToken": login_token
             }
             user_json = json.dumps(user, default=str)
@@ -124,6 +133,18 @@ def logout_user():
         else:
             return Response("Please enter valid data", mimetype="plain/text", status=400)
 
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.get('/api/follows')
+def get_my_follows():
+    try:
+        user_id = request.json['userId']
+        follows = dbi.get_my_follows(user_id)
+        follows_json = json.dumps(follows, default=str)
+        return Response(follows_json, mimetype="application/json", status=200)
     except:
         print("Something went wrong")
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
