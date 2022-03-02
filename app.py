@@ -150,6 +150,52 @@ def get_my_follows():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.post('/api/follows')
+def follow_other_users():
+    try:
+        login_token = request.json['loginToken']
+        follower_id = request.json['followId']
+        success = dbi.follow_other_users(
+            login_token, follower_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/follows')
+def unfollow_users():
+    try:
+        login_token = request.json['loginToken']
+        follower_id = request.json['followId']
+        success = dbi.unfollow_users(
+            login_token, follower_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.get('/api/followers')
+def get_my_followers():
+    try:
+        user_id = request.json['userId']
+        followers = dbi.get_my_followers(user_id)
+        followers_json = json.dumps(followers, default=str)
+        return Response(followers_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:

@@ -174,7 +174,7 @@ def get_my_follows(user_id):
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "select u.id, email, username, bio, birthdate, image_url, banner_url from user u inner join follow f on u.id = f.follower_id where f.followed_id = ?", [user_id])
+            "select u.id, email, username, bio, birthdate, image_url, banner_url from user u inner join follow f on u.id = f.followed_id where f.follower_id = ?", [user_id])
         follows = cursor.fetchall()
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
@@ -184,3 +184,70 @@ def get_my_follows(user_id):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return follows
+
+
+def follow_other_users(login_token, follower_id):
+    success = False
+    user = None
+    user_id = None
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "INSERT INTO follow(follower_id, followed_id) VALUES(?, ?)", [user_id, follower_id])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success
+
+
+def unfollow_users(login_token, follower_id):
+    success = False
+    user = None
+    user_id = None
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "delete from follow where follower_id = ? and followed_id = ?", [user_id, follower_id])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success
+
+
+def get_my_followers(user_id):
+    followers = []
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select u.id, email, username, bio, birthdate, image_url, banner_url from user u inner join follow f on u.id = f.follower_id where f.followed_id = ?", [user_id])
+        followers = cursor.fetchall()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return followers
