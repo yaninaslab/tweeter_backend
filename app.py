@@ -1,3 +1,4 @@
+from email.mime import image
 import dbinteractions as dbi
 from flask import Flask, request, Response
 import json
@@ -191,6 +192,40 @@ def get_my_followers():
         followers = dbi.get_my_followers(user_id)
         followers_json = json.dumps(followers, default=str)
         return Response(followers_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.get('/api/tweets')
+def get_tweets():
+    try:
+        user_id = request.json['userId']
+        tweets = dbi.get_tweets(user_id)
+        tweets_json = json.dumps(tweets, default=str)
+        return Response(tweets_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.post('/api/tweets')
+def post_new_tweet():
+    try:
+        login_token = request.json['loginToken']
+        content = request.json['content']
+        success, new_tweet = dbi.post_new_tweet(login_token, content)
+        if(success == True):
+            new_tweet = {
+                "tweetId": new_tweet[0],
+                "userId": new_tweet[1],
+                "username": new_tweet[2],
+                "content": new_tweet[3],
+                "createdAt": new_tweet[4],
+                "imageUrl": new_tweet[5],
+            }
+        new_tweet_json = json.dumps(new_tweet, default=str)
+        return Response(new_tweet_json, mimetype="application/json", status=200)
     except:
         print("Something went wrong")
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)

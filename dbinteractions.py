@@ -251,3 +251,47 @@ def get_my_followers(user_id):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return followers
+
+
+def get_tweets(user_id):
+    tweets = []
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select t.id, t.user_id, u.username, t.content, t.created_at, u.image_url from `user` u inner join tweet t on u.id = t.user_id where t.user_id = ?; ", [user_id])
+        tweets = cursor.fetchall()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return tweets
+
+
+def post_new_tweet(login_token, content):
+    new_tweet = None
+    success = False
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "INSERT INTO tweet(content, user_id) VALUES(?, ?)", [content, user_id])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+        cursor.execute(
+            "select t.id, t.user_id, u.username, t.content, t.created_at, u.image_url from `user` u inner join tweet t on u.id = t.user_id where t.user_id = ?; ", [user_id])
+        new_tweet = cursor.fetchone()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success, new_tweet
