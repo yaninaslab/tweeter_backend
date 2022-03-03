@@ -231,6 +231,45 @@ def post_new_tweet():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.patch('/api/tweets')
+def update_tweet():
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+        content = request.json['content']
+        success, updated_tweet = dbi.update_tweet(
+            login_token, tweet_id, content)
+        if(success == True):
+            updated_tweet = {
+                "tweetId": tweet_id,
+                "content": content
+            }
+            updated_tweet_json = json.dumps(updated_tweet, default=str)
+            return Response(updated_tweet_json, mimetype="application/json", status=200)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/tweets')
+def delete_tweet():
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+        success = dbi.delete_tweet(
+            login_token, tweet_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:
