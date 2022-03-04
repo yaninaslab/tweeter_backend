@@ -328,6 +328,69 @@ def get_comments():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.post('/api/comments')
+def add_comment():
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+        content = request.json['content']
+        success, comment = dbi.add_comment(login_token, tweet_id, content)
+        if(success == True):
+            comment = {
+                "commentId": comment[0],
+                "tweetId": comment[1],
+                "userId": comment[2],
+                "username": comment[3],
+                "content": comment[4],
+                "createdAt": comment[5],
+            }
+        comment_json = json.dumps(comment, default=str)
+        return Response(comment_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.patch('/api/comments')
+def edit_comment():
+    try:
+        login_token = request.json['loginToken']
+        comment_id = request.json['commentId']
+        content = request.json['content']
+        success, comment = dbi.edit_comment(login_token, comment_id, content)
+        if(success == True):
+            comment = {
+                "commentId": comment[0],
+                "tweetId": comment[1],
+                "userId": comment[2],
+                "username": comment[3],
+                "content": comment[4],
+                "createdAt": comment[5],
+            }
+        comment_json = json.dumps(comment, default=str)
+        return Response(comment_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/comments')
+def delete_comment():
+    try:
+        login_token = request.json['loginToken']
+        comment_id = request.json['commentId']
+        success = dbi.delete_comment(
+            login_token, comment_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:
