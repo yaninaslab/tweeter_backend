@@ -270,6 +270,52 @@ def delete_tweet():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.get('/api/tweet-likes')
+def get_likes():
+    try:
+        tweet_id = request.json['tweetId']
+        tweet_likes = dbi.get_likes(tweet_id)
+        tweet_likes_json = json.dumps(tweet_likes, default=str)
+        return Response(tweet_likes_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.post('/api/tweet-likes')
+def add_like():
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+        success = dbi.add_like(
+            login_token, tweet_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/tweet-likes')
+def remove_like():
+    try:
+        login_token = request.json['loginToken']
+        tweet_id = request.json['tweetId']
+        success = dbi.remove_like(
+            login_token, tweet_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:

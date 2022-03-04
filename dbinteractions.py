@@ -347,3 +347,70 @@ def delete_tweet(login_token, tweet_id):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return success
+
+
+def get_likes(tweet_id):
+    tweet_likes = []
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select tweet_id, user_id, u.username from tweet_like tl inner join `user` u on u.id = tl.user_id where tl.tweet_id = ?", [tweet_id])
+        tweet_likes = cursor.fetchall()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return tweet_likes
+
+
+def add_like(login_token, tweet_id):
+    success = False
+    user = None
+    user_id = None
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "INSERT INTO tweet_like(user_id, tweet_id) VALUES(?, ?)", [user_id, tweet_id])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success
+
+
+def remove_like(login_token, tweet_id):
+    success = False
+    user = None
+    user_id = None
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select user_id from user_session where login_token = ?", [login_token])
+        user = cursor.fetchone()
+        user_id = user[0]
+        cursor.execute(
+            "delete from tweet_like where user_id = ? and tweet_id = ?", [user_id, tweet_id])
+        conn.commit()
+        if(cursor.rowcount == 1):
+            success = True
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return success
