@@ -316,6 +316,18 @@ def remove_like():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.get('/api/comments')
+def get_comments():
+    try:
+        tweet_id = request.json['tweetId']
+        comments = dbi.get_comments(tweet_id)
+        comments_json = json.dumps(comments, default=str)
+        return Response(comments_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:

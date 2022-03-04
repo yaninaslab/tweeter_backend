@@ -414,3 +414,20 @@ def remove_like(login_token, tweet_id):
         print("Something went wrong!")
     disconnect_db(conn, cursor)
     return success
+
+
+def get_comments(tweet_id):
+    comments = []
+    conn, cursor = connect_db()
+    try:
+        cursor.execute(
+            "select c.id, tweet_id, user_id, u.username, content, created_at from comment c inner join `user` u on u.id = c.user_id where c.tweet_id = ?", [tweet_id])
+        comments = cursor.fetchall()
+    except db.OperationalError:
+        print("Something is wrong with the DB, please try again in 5 minutes")
+    except db.ProgrammingError:
+        print("Error running DB query, please file bug report")
+    except:
+        print("Something went wrong!")
+    disconnect_db(conn, cursor)
+    return comments
