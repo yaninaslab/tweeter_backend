@@ -391,6 +391,52 @@ def delete_comment():
         return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
 
 
+@app.get('/api/comment-likes')
+def get_com_likes():
+    try:
+        comment_id = request.json['commentId']
+        comment_likes = dbi.get_com_likes(comment_id)
+        comment_likes_json = json.dumps(comment_likes, default=str)
+        return Response(comment_likes_json, mimetype="application/json", status=200)
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.post('/api/comment-likes')
+def add_com_like():
+    try:
+        login_token = request.json['loginToken']
+        comment_id = request.json['commentId']
+        success = dbi.add_com_like(
+            login_token, comment_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
+@app.delete('/api/comment-likes')
+def remove_com_like():
+    try:
+        login_token = request.json['loginToken']
+        comment_id = request.json['commentId']
+        success = dbi.remove_com_like(
+            login_token, comment_id)
+        if(success == True):
+            return Response(mimetype="application/json", status=204)
+        else:
+            return Response("Please enter valid data", mimetype="plain/text", status=400)
+
+    except:
+        print("Something went wrong")
+        return Response("Sorry, something is wrong with the service. Please try again later", mimetype="plain/text", status=501)
+
+
 if(len(sys.argv) > 1):
     mode = sys.argv[1]
 else:
