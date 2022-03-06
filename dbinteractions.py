@@ -54,13 +54,13 @@ def get_all_users():
 
 
 def add_new_user(
-        email, username, password, bio, birthdate, image_url, banner_url):
+        email, username, password, bio, birthdate):
     new_user = None
     conn, cursor = connect_db()
     try:
         salt = create_salt()
         cursor.execute(
-            "insert into user(email, username, password, bio, birthdate, image_url, banner_url, salt) values(?, ?, ?, ?, ?, ?, ?, ?)", [email, username, password, bio, birthdate, image_url, banner_url, salt])
+            "insert into user(email, username, password, bio, birthdate, salt) values(?, ?, ?, ?, ?, ?)", [email, username, password, bio, birthdate, salt])
         conn.commit()
         if(cursor.rowcount == 1):
             login_token = create_login_token()
@@ -253,12 +253,12 @@ def get_my_followers(user_id):
     return followers
 
 
-def get_tweets(user_id):
+def get_tweets():
     tweets = []
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "select t.id, t.user_id, u.username, t.content, t.created_at, u.image_url from `user` u inner join tweet t on u.id = t.user_id where t.user_id = ?; ", [user_id])
+            "select t.id, t.user_id, u.username, t.content, t.created_at from `user` u inner join tweet t on u.id = t.user_id")
         tweets = cursor.fetchall()
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
@@ -349,12 +349,12 @@ def delete_tweet(login_token, tweet_id):
     return success
 
 
-def get_likes(tweet_id):
+def get_likes():
     tweet_likes = []
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "select tweet_id, user_id, u.username from tweet_like tl inner join `user` u on u.id = tl.user_id where tl.tweet_id = ?", [tweet_id])
+            "select tweet_id, user_id, u.username from tweet_like tl inner join `user` u on u.id = tl.user_id")
         tweet_likes = cursor.fetchall()
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")
@@ -416,12 +416,12 @@ def remove_like(login_token, tweet_id):
     return success
 
 
-def get_comments(tweet_id):
+def get_comments():
     comments = []
     conn, cursor = connect_db()
     try:
         cursor.execute(
-            "select c.id, tweet_id, user_id, u.username, content, created_at from comment c inner join `user` u on u.id = c.user_id where c.tweet_id = ?", [tweet_id])
+            "select c.id, tweet_id, user_id, u.username, content, created_at from comment c inner join `user` u on u.id = c.user_id")
         comments = cursor.fetchall()
     except db.OperationalError:
         print("Something is wrong with the DB, please try again in 5 minutes")

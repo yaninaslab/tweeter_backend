@@ -28,10 +28,10 @@ def add_new_user():
         password = request.json['password']
         bio = request.json['bio']
         birthdate = request.json['birthdate']
-        image_url = request.json['image_url']
-        banner_url = request.json['banner_url']
+        # image_url = request.json['image_url']
+        # banner_url = request.json['banner_url']
         new_user, login_token, user_id = dbi.add_new_user(
-            email, username, password, bio, birthdate, image_url, banner_url)
+            email, username, password, bio, birthdate)
         if(new_user == True):
             new_user = {
                 "userId": user_id,
@@ -39,8 +39,8 @@ def add_new_user():
                 "username": username,
                 "bio": bio,
                 "bithdate": birthdate,
-                "imageUrl": image_url,
-                "bannerUrl": banner_url,
+                # "imageUrl": image_url,
+                # "bannerUrl": banner_url,
                 "loginToken": login_token
             }
             new_user_json = json.dumps(new_user, default=str)
@@ -200,8 +200,8 @@ def get_my_followers():
 @app.get('/api/tweets')
 def get_tweets():
     try:
-        user_id = request.json['userId']
-        tweets = dbi.get_tweets(user_id)
+        # user_id = request.json['userId']
+        tweets = dbi.get_tweets()
         tweets_json = json.dumps(tweets, default=str)
         return Response(tweets_json, mimetype="application/json", status=200)
     except:
@@ -273,8 +273,8 @@ def delete_tweet():
 @app.get('/api/tweet-likes')
 def get_likes():
     try:
-        tweet_id = request.json['tweetId']
-        tweet_likes = dbi.get_likes(tweet_id)
+        # tweet_id = request.json['tweetId']
+        tweet_likes = dbi.get_likes()
         tweet_likes_json = json.dumps(tweet_likes, default=str)
         return Response(tweet_likes_json, mimetype="application/json", status=200)
     except:
@@ -319,8 +319,8 @@ def remove_like():
 @app.get('/api/comments')
 def get_comments():
     try:
-        tweet_id = request.json['tweetId']
-        comments = dbi.get_comments(tweet_id)
+        # tweet_id = request.json['tweetId']
+        comments = dbi.get_comments()
         comments_json = json.dumps(comments, default=str)
         return Response(comments_json, mimetype="application/json", status=200)
     except:
