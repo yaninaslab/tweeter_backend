@@ -1,1 +1,1 @@
-# Backend for the CoachStore in Python/Flask and MariaDB
+# Backend for the TweeterClone in Python/Flask and MariaDB
